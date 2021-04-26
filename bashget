@@ -34,6 +34,11 @@ update installed package
 
 ${program} up package [branch]
 
+update ALL installed packages
+-----------------------------
+
+${program} up --all
+
 remove installed package
 ------------------------
 
@@ -113,11 +118,13 @@ handler_add () {
 
 # up package [branch]
 handler_up () {
-    log "up"
+    log "update"
 
     local package="$1"
     checkArg package "${package}"
     local branch="${2:-master}"
+
+    [[ "${package}" == "--all" ]] && updateAll || true
 
     log "package: ${package}"
     log "branch: ${branch}"
@@ -131,6 +138,29 @@ handler_up () {
 
     cd "${cwd}"
     syncPackageBins "${package}"
+}
+
+updateAll () {
+    log "update ALL"
+
+    # set the packages to update list, from the store
+    local packages=()
+    cd "${store}"
+    for p in *; do
+        if [[ -d "$p" ]]; then
+            packages+=("$p")
+        fi
+    done
+    cd "${cwd}"
+    log "packages to update: ${packages[*]}"
+
+    # update packages
+    for p in "${packages[@]}"
+    do
+        handler_up "$p"
+    done
+
+    exit 0
 }
 
 # rm package
