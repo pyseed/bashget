@@ -37,6 +37,10 @@ handler_help () {
     exit 0
 }
 
+# get user repo [branch]
+# TODO ssh support for private packages
+# TODO local support for devs
+# TODO gitlab support
 handler_get () {
     log "get"
 
@@ -51,13 +55,23 @@ handler_get () {
     log "branch: ${branch}"
 
     mkdir -p "${store}"
+    cd "${store}"
+
     if [[ ! -d "${store}/${repo}" ]]; then
-        git clone --depth=1 https://github.com/${user}/${repo}.git -b "${branch}" "${store}/${repo}"
+        git clone --depth=1 https://github.com/${user}/${repo}.git -b "${branch}" "${repo}"
     else
-        cd "${store}/${repo}"
+        cd "${repo}"
         git pull origin "${branch}"
-        cd "${cwd}"
+        cd ..
     fi
+
+    cd "${repo}"
+
+    # any script with repo name ? considered as main script, copy it to .local/bin
+    [[ -f "./${repo}" ]] && cp "./${repo}" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${repo}"
+    [[ -f "./${repo}.sh" ]] && cp "./${repo}.sh" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${repo}.sh"
+
+    cd "${cwd}"
 }
 
 dispatch () {
