@@ -29,6 +29,11 @@ update installed package
 
 ${program} up package [branch]
 
+remove installed package
+------------------------
+
+${program} rm package
+
 EOF
 )"
 
