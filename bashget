@@ -64,6 +64,7 @@ syncPackageBins () {
     [[ -d "${store}/${package}/bin" ]] && chmod u+x "${store}/${package}/bin/*" && cp "${store}/${package}/bin/*" $HOME/.local/bin/  || true
 }
 
+
 handler_help () {
     echo "${helpMessage}"
     exit 0
@@ -117,7 +118,25 @@ handler_up () {
     syncPackageBins "${package}"
 }
 
+# rm package
+handler_rm () {
+    log "rm"
+
+    local package="$1"
+    checkArg package "${package}"
+
+    log "package: ${package}"
+    [[ ! -d "${store}/${package}" ]] && fatal "package not found: ${package}" || true
+
+    rm -rf "${store}/${package}/"
+    rm "$HOME/.local/bin/${package}.sh" 2> /dev/null || true
+    rm "$HOME/.local/bin/${package}" 2> /dev/null || true
+}
+
+
 dispatch () {
+    [[ -z "${store}" ]] && fatal "store path not defined" || true
+
     local command="$1"
     [[ -z "$1" ]] && handler_help || true
 
