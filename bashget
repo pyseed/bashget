@@ -11,6 +11,11 @@ cwd=$(pwd)
 helpMessage="$(cat <<-EOF
 ${program} ${version}
 
+list installed package
+----------------------
+
+${program} ls
+
 add new package
 ---------------
 
@@ -73,6 +78,11 @@ syncPackageBins () {
 handler_help () {
     echo "${helpMessage}"
     exit 0
+}
+
+# add user repo [branch]
+handler_ls () {
+    ls -1 "${store}"
 }
 
 # add user repo [branch]
