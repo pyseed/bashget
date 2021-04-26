@@ -11,10 +11,17 @@ cwd=$(pwd)
 helpMessage="$(cat <<-EOF
 ${program} ${version}
 
+
 list installed package
 ----------------------
 
 ${program} ls
+
+
+get package location
+--------------------
+
+. \$(${program} get package)/mylib.sh
 
 add new package
 ---------------
@@ -29,15 +36,18 @@ REPO_SSH=1 ${program} get ...
 to add package from other host than the default github.com, use the REPO_HOST variable:
 REPO_HOST=gitlab.com ${program} add ...
 
+
 update installed package
 ------------------------
 
 ${program} up package [branch]
 
+
 update ALL installed packages
 -----------------------------
 
 ${program} up --all
+
 
 remove installed package
 ------------------------
@@ -85,12 +95,17 @@ handler_help () {
     exit 0
 }
 
-# add user repo [branch]
+# ls
 handler_ls () {
     ls -1 "${store}"
 }
 
-# add user repo [branch]
+# get package
+handler_get () {
+    echo "${store}/$1"
+}
+
+# [REPO_HOST=host.com] [REPO_SSH=1] add package user [branch]
 handler_add () {
     log "add"
 
