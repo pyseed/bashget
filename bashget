@@ -11,6 +11,12 @@ cwd=$(pwd)
 helpMessage="$(cat <<-EOF
 ${program} ${version}
 
+bash scripts lite package manager
+
+packages are store in ${store}
+
+packages binaries are copied to $HOME/.local/bin
+
 
 list installed package
 ----------------------
@@ -36,6 +42,11 @@ REPO_SSH=1 ${program} get ...
 to add package from other host than the default github.com, use the REPO_HOST variable:
 REPO_HOST=gitlab.com ${program} add ...
 
+binaries location:
+
+if the repo contains files like [repo_name] and/or [repo_name].sh, they are copied to $HOME/.local/bin
+
+if the repo contains a bin directory, files of this directory are copied to $HOME/.local/bin
 
 update installed package
 ------------------------
