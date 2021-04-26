@@ -2,10 +2,14 @@
 
 program="bashget"
 version=0.1.0
+store="$HOME/.bashget"
 cwd=$(pwd)
 
 helpMessage="$(cat <<-EOF
 ${program} ${version}
+
+get package (or update):
+${program} user repo [branch]
 
 EOF
 )"
@@ -28,14 +32,39 @@ checkArg () {
    fi
 }
 
-help () {
+handler_help () {
     echo "${helpMessage}"
     exit 0
 }
 
+handler_get () {
+    log "get"
+
+    local user="$1"
+    checkArg user "${user}"
+    local repo="$2"
+    checkArg repo "${repo}"
+    local branch="${3:-master}"
+
+    log "user: ${user}"
+    log "repo: ${repo}"
+    log "branch: ${branch}"
+
+    mkdir -p "${store}"
+    if [[ ! -d "${store}/${repo}" ]]; then
+        git clone --depth=1 https://github.com/${user}/${repo}.git -b "${branch}" "${store}/${repo}"
+    else
+        cd "${store}/${repo}"
+        git pull origin "${branch}"
+        cd "${cwd}"
+    fi
+}
+
 dispatch () {
     local command="$1"
-    [[ -z "$1" ]] && help || true
+    [[ -z "$1" ]] && handler_help || true
+
+    declare -F "handler_${command}" &> /dev/null && "handler_${command}" ${@:2} || fatal "command not found or command error"
 }
 
 dispatch $@
