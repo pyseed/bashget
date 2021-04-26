@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# TODO local support for devs
+# TODO gitlab support
+
 program="bashget"
 version=0.1.0
 store="$HOME/.bashget"
@@ -8,8 +11,23 @@ cwd=$(pwd)
 helpMessage="$(cat <<-EOF
 ${program} ${version}
 
-get package (or update):
-${program} user repo [branch]
+add new package
+---------------
+
+${program} add package user [branch]
+
+switchs and options:
+
+to add package through ssh use the REPO_SSH variable:
+REPO_SSH=1 ${program} get ...
+
+to add package from other host than the default github.com, use the REPO_HOST variable:
+REPO_HOST=gitlab.com ${program} add ...
+
+update installed package
+------------------------
+
+${program} up package [branch]
 
 EOF
 )"
@@ -32,46 +50,71 @@ checkArg () {
    fi
 }
 
+# syncPackageBins package
+syncPackageBins () {
+    log "sync package bins" 
+    local package="$1"
+    checkArg package "${package}"
+
+    # any script with repo name ? considered as main script, copy it to .local/bin
+    [[ -f "${store}/${package}/${package}" ]] && cp "${store}/${package}/${package}" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${package}" || true
+    [[ -f "${store}/${package}/${package}.sh" ]] && cp "${store}/${package}/${package}.sh" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${package}.sh" || true
+
+    # copy all ./bin files to .local/bin
+    [[ -d "${store}/${package}/bin" ]] && chmod u+x "${store}/${package}/bin/*" && cp "${store}/${package}/bin/*" $HOME/.local/bin/  || true
+}
+
 handler_help () {
     echo "${helpMessage}"
     exit 0
 }
 
-# get user repo [branch]
-# TODO ssh support for private packages
-# TODO local support for devs
-# TODO gitlab support
-handler_get () {
-    log "get"
+# add user repo [branch]
+handler_add () {
+    log "add"
 
-    local user="$1"
+    local package="$1"
+    checkArg package "${package}"
+    local user="$2"
     checkArg user "${user}"
-    local repo="$2"
-    checkArg repo "${repo}"
     local branch="${3:-master}"
+    local host="${REPO_HOST:-github.com}"
+    local url
+    [[ "${REPO_SSH}" == 1 ]] && url="git@${host}:${user}/${package}.git" || url="https://${host}/${user}/${package}.git"
 
+    log "package: ${package}"
     log "user: ${user}"
-    log "repo: ${repo}"
     log "branch: ${branch}"
+    log "host: ${host}"
+    log "url: ${url}"
+
+    [[ -d "${store}/${package}" ]] && fatal "package already installed: ${package}. please use up command instead" || true
 
     mkdir -p "${store}"
-    cd "${store}"
+    git clone --depth=1 "${url}" -b "${branch}" "${store}/${package}"
+    syncPackageBins "${package}"
+}
 
-    if [[ ! -d "${store}/${repo}" ]]; then
-        git clone --depth=1 https://github.com/${user}/${repo}.git -b "${branch}" "${repo}"
-    else
-        cd "${repo}"
-        git pull origin "${branch}"
-        cd ..
-    fi
+# up package [branch]
+handler_up () {
+    log "up"
 
-    cd "${repo}"
+    local package="$1"
+    checkArg package "${package}"
+    local branch="${2:-master}"
 
-    # any script with repo name ? considered as main script, copy it to .local/bin
-    [[ -f "./${repo}" ]] && cp "./${repo}" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${repo}"
-    [[ -f "./${repo}.sh" ]] && cp "./${repo}.sh" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${repo}.sh"
+    log "package: ${package}"
+    log "branch: ${branch}"
+
+    [[ ! -d "${store}/${package}" ]] && fatal "package not found: ${package}. please use add command instead" || true
+
+    # git pull local branch or create one from repo
+    cd "${store}/${package}"
+    git fetch origin
+    git show-branch "${branch}" &>/dev/null && git pull origin "${branch}" || git checkout -b "${branch}" "origin/${branch}"
 
     cd "${cwd}"
+    syncPackageBins "${package}"
 }
 
 dispatch () {
