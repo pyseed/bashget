@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+program="bashget"
+version=0.1.0
+cwd=$(pwd)
+
+helpMessage="$(cat <<-EOF
+${program} ${version}
+
+EOF
+)"
+
+log () {
+    echo "${program} / $*"
+}
+
+fatal () {
+    echo -e "\e[31m[FATAL] ${program} / $*. aborted\e[0m"
+    exit 1
+}
+
+# check arg
+# checkArg name var
+checkArg () {
+    if [ -z "$2" ]; then
+      echo ""
+      fatal "argument missing: $1"
+   fi
+}
+
+help () {
+    echo "${helpMessage}"
+    exit 0
+}
+
+dispatch () {
+    local command="$1"
+    [[ -z "$1" ]] && help || true
+}
+
+dispatch $@
