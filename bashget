@@ -86,11 +86,23 @@ checkArg () {
    fi
 }
 
+installDeps () {
+    if [[ -f "${store}/${package}/${program}.cfg" ]]; then
+        log "install package deps"
+        . "${store}/${package}/${program}.cfg"
+
+        for p in "${deps[@]}"
+        do
+            echo "$p"
+            pArr=( ${p//@/ } )
+            handler_add "${pArr[0]}" "${pArr[1]}"
+        done
+    fi
+}
+
 # syncPackageBins package
 syncPackageBins () {
     log "sync package bins" 
-    local package="$1"
-    checkArg package "${package}"
 
     # any script with repo name ? considered as main script, copy it to .local/bin
     [[ -f "${store}/${package}/${package}" ]] && cp "${store}/${package}/${package}" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${package}" || true
@@ -141,7 +153,8 @@ handler_add () {
     else
         mkdir -p "${store}"
         git clone --depth=1 "${url}" -b "${branch}" "${store}/${package}"
-        syncPackageBins "${package}"
+        syncPackageBins
+        installDeps
     fi
 }
 
@@ -166,7 +179,8 @@ handler_up () {
     git show-branch "${branch}" &>/dev/null && git pull origin "${branch}" || git checkout -b "${branch}" "origin/${branch}"
 
     cd "${cwd}"
-    syncPackageBins "${package}"
+    syncPackageBins
+    installDeps
 }
 
 updateAll () {
