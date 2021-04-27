@@ -44,7 +44,7 @@ REPO_HOST=gitlab.com ${program} add ...
 
 binaries location:
 
-if the repo contains files like [repo_name] and/or [repo_name].sh, they are copied to $HOME/.local/bin
+if the repo contains files like [slug] and/or [slug].sh, they are copied to $HOME/.local/bin
 
 if the repo contains a bin directory, files of this directory are copied to $HOME/.local/bin
 
@@ -64,6 +64,12 @@ remove installed package
 ------------------------
 
 ${program} rm package
+
+
+optional package cfg
+--------------------
+
+https://github.com/pyseed/bashget#package-config-file
 
 EOF
 )"
