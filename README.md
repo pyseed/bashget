@@ -56,7 +56,7 @@ deps=( "package1@user1" "package2@user1" "package3@user2")
 
 ### custom bins
 
-path are package relative
+paths are package relative
 
 ```bash
 bins=( "mydir/myscript.sh" "myscript.sh" )
