@@ -88,15 +88,17 @@ checkArg () {
 
 installDeps () {
     if [[ -f "${store}/${package}/${program}.cfg" ]]; then
-        log "install package deps"
         . "${store}/${package}/${program}.cfg"
 
-        for p in "${deps[@]}"
-        do
-            echo "$p"
-            pArr=( ${p//@/ } )
-            handler_add "${pArr[0]}" "${pArr[1]}"
-        done
+        if [[ -n "${deps}" ]]; then
+            log "install package deps: ${deps[*]}"
+            for p in "${deps[@]}"
+            do
+                echo "$p"
+                pArr=( ${p//@/ } )
+                handler_add "${pArr[0]}" "${pArr[1]}"
+            done
+        fi
     fi
 }
 
@@ -105,11 +107,26 @@ syncPackageBins () {
     log "sync package bins" 
 
     # any script with repo name ? considered as main script, copy it to .local/bin
-    [[ -f "${store}/${package}/${package}" ]] && cp "${store}/${package}/${package}" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${package}" || true
-    [[ -f "${store}/${package}/${package}.sh" ]] && cp "${store}/${package}/${package}.sh" $HOME/.local/bin/ && chmod u+x "$HOME/.local/bin/${package}.sh" || true
+    [[ -f "${store}/${package}/${package}" ]] && cp "${store}/${package}/${package}" $HOME/.local/bin/ || true
+    [[ -f "${store}/${package}/${package}.sh" ]] && cp "${store}/${package}/${package}.sh" $HOME/.local/bin/ || true
 
     # copy all ./bin files to .local/bin
-    [[ -d "${store}/${package}/bin" ]] && chmod u+x "${store}/${package}/bin/*" && cp "${store}/${package}/bin/*" $HOME/.local/bin/  || true
+    [[ -d "${store}/${package}/bin" ]] && cp -a "${store}/${package}/bin/." $HOME/.local/bin/ || true
+
+    if [[ -f "${store}/${package}/${program}.cfg" ]]; then
+        . "${store}/${package}/${program}.cfg"
+
+        if [[ -n "${bins}" ]]; then
+            log "sync custom bins"
+            for p in "${bins[@]}"
+            do
+                echo "$p"
+                cp "${store}/${package}/$p" "$HOME/.local/bin/$(basename $p)"
+            done
+        fi
+    fi
+
+    chmod -R u+x $HOME/.local/bin/
 }
 
 
