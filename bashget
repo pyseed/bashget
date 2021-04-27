@@ -135,11 +135,14 @@ handler_add () {
     log "host: ${host}"
     log "url: ${url}"
 
-    [[ -d "${store}/${package}" ]] && fatal "package already installed: ${package}. please use up command instead" || true
-
-    mkdir -p "${store}"
-    git clone --depth=1 "${url}" -b "${branch}" "${store}/${package}"
-    syncPackageBins "${package}"
+    if [[ -d "${store}/${package}" ]]; then
+        log "package already installed: ${package}. applying update instead..."
+        handler_up "${package}" "${branch}"
+    else
+        mkdir -p "${store}"
+        git clone --depth=1 "${url}" -b "${branch}" "${store}/${package}"
+        syncPackageBins "${package}"
+    fi
 }
 
 # up package [branch]
