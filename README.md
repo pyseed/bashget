@@ -55,6 +55,12 @@ example: https://github.com/pyseed/bashget_test_package/blob/master/bashget.cfg
 deps=( "package1@user1" "package2@user1" "package3@user2")
 ```
 
+if a package requires an ssh connection, like a private package, you can use the ssh option:
+
+```bash
+deps=( "package1@user1" "package2@user1" "private@user2:ssh")
+```
+
 ### custom bins
 
 paths are package relative

@@ -102,10 +102,20 @@ installDeps () {
             do
                 echo "$p"
                 pArr=( ${p//@/ } )
-                handler_add "${pArr[0]}" "${pArr[1]}"
+                package="${pArr[0]}"
+                userParts="${pArr[1]}"
+
+                userArr=( ${userParts//:/ } )
+                user="${userParts[0]}"
+                userOptions="${userParts[1]}"
+                [[ -n "${userOptions}" ]] && [[ "${userOptions}" == "ssh" ]] && REPO_SSH=1 || REPO_SSH=0
+
+                handler_add "${package}" "${user}"
             done
         fi
     fi
+
+    REPO_SSH="${repoSshBackup}"
 }
 
 # syncPackageBins package
@@ -261,6 +271,8 @@ dispatch () {
 
     local command="$1"
     [[ -z "$1" ]] && handler_help || true
+
+    repoSshBackup="${REPO_SSH}"
 
     declare -F "handler_${command}" &> /dev/null && "handler_${command}" ${@:2} || fatal "command not found or command error"
 }
