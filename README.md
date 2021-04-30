@@ -28,6 +28,7 @@ if the repo contains a bin directory, files of this directory are copied to $HOM
 - update a package
 - update all packages
 - delete package
+- setup script trigger: if a package contains a setup.sh script, will be trigger at post add or post update
 
 see more using `bashget help`
 

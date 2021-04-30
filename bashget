@@ -135,6 +135,15 @@ syncPackageBins () {
     chmod -R u+x $HOME/.local/bin/
 }
 
+setup () {
+    if [[ -f "${store}/${package}/setup.sh" ]]; then
+        log "trigger package setup (setup.sh script has been found in package)"
+        cd "${store}/${package}"
+        ./setup.sh
+        cd "${cwd}"
+    fi
+}
+
 
 handler_help () {
     echo "${helpMessage}"
@@ -178,6 +187,7 @@ handler_add () {
         git clone --depth=1 "${url}" -b "${branch}" "${store}/${package}"
         syncPackageBins
         installDeps
+        setup
     fi
 }
 
@@ -204,6 +214,7 @@ handler_up () {
     cd "${cwd}"
     syncPackageBins
     installDeps
+    setup
 }
 
 updateAll () {
