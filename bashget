@@ -92,7 +92,11 @@ checkArg () {
    fi
 }
 
+# installDep package
 installDeps () {
+    local package="$1"
+    checkArg package "${package}"
+
     if [[ -f "${store}/${package}/${program}.cfg" ]]; then
         . "${store}/${package}/${program}.cfg"
 
@@ -120,7 +124,10 @@ installDeps () {
 
 # syncPackageBins package
 syncPackageBins () {
-    log "sync package bins" 
+    log "sync package bins"
+
+    local package="$1"
+    checkArg package "${package}"
 
     # any script with repo name ? considered as main script, copy it to .local/bin
     [[ -f "${store}/${package}/${package}" ]] && cp "${store}/${package}/${package}" $HOME/.local/bin/ || true
@@ -145,11 +152,15 @@ syncPackageBins () {
     chmod -R u+x $HOME/.local/bin/
 }
 
-setup () {
+# setupTrigger package
+setupTrigger () {
+    local package="$1"
+    checkArg package "${package}"
+
     if [[ -f "${store}/${package}/setup.sh" ]]; then
         log "trigger package setup (setup.sh script has been found in package)"
         cd "${store}/${package}"
-        ./setup.sh
+        sh ./setup.sh
         cd "${cwd}"
     fi
 }
@@ -195,9 +206,9 @@ handler_add () {
     else
         mkdir -p "${store}"
         git clone --depth=1 "${url}" -b "${branch}" "${store}/${package}"
-        syncPackageBins
-        installDeps
-        setup
+        syncPackageBins "${package}"
+        installDeps "${package}"
+        setupTrigger "${package}"
     fi
 }
 
@@ -222,9 +233,9 @@ handler_up () {
     git show-branch "${branch}" &>/dev/null && git pull origin "${branch}" || git checkout -b "${branch}" "origin/${branch}"
 
     cd "${cwd}"
-    syncPackageBins
-    installDeps
-    setup
+    syncPackageBins "${package}"
+    installDeps "${package}"
+    setupTrigger "${package}"
 }
 
 updateAll () {
