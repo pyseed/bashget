@@ -299,7 +299,6 @@ handler_link () {
 
     local mainScriptPath="${cwd}/${mainScript}"
     local target="$HOME/.local/bin/${mainScript}"
-    set -x
     ln -sf "${mainScriptPath}" "${target}"
     log "link done: ${mainScriptPath} -> ${target}"
 }
