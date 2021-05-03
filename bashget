@@ -29,6 +29,7 @@ get package location
 
 . \$(${program} get package)/mylib.sh
 
+
 add new package
 ---------------
 
@@ -48,6 +49,7 @@ if the repo contains files like [slug] and/or [slug].sh, they are copied to $HOM
 
 if the repo contains a bin directory, files of this directory are copied to $HOME/.local/bin
 
+
 update installed package
 ------------------------
 
@@ -64,6 +66,17 @@ remove installed package
 ------------------------
 
 ${program} rm package
+
+
+link package
+------------
+
+from current directory, link package mainscript
+
+${program} link mainscript
+
+cd /home/user/myproject
+${program} link mainscript.sh
 
 
 optional package cfg
@@ -165,6 +178,29 @@ setupTrigger () {
     fi
 }
 
+updateAll () {
+    log "update ALL"
+
+    # set the packages to update list, from the store
+    local packages=()
+    cd "${store}"
+    for p in *; do
+        if [[ -d "$p" ]]; then
+            packages+=("$p")
+        fi
+    done
+    cd "${cwd}"
+    log "packages to update: ${packages[*]}"
+
+    # update packages
+    for p in "${packages[@]}"
+    do
+        handler_up "$p"
+    done
+
+    exit 0
+}
+
 
 handler_help () {
     echo "${helpMessage}"
@@ -238,28 +274,6 @@ handler_up () {
     setupTrigger "${package}"
 }
 
-updateAll () {
-    log "update ALL"
-
-    # set the packages to update list, from the store
-    local packages=()
-    cd "${store}"
-    for p in *; do
-        if [[ -d "$p" ]]; then
-            packages+=("$p")
-        fi
-    done
-    cd "${cwd}"
-    log "packages to update: ${packages[*]}"
-
-    # update packages
-    for p in "${packages[@]}"
-    do
-        handler_up "$p"
-    done
-
-    exit 0
-}
 
 # rm package
 handler_rm () {
@@ -274,6 +288,20 @@ handler_rm () {
     rm -rf "${store}/${package}/"
     rm "$HOME/.local/bin/${package}.sh" 2> /dev/null || true
     rm "$HOME/.local/bin/${package}" 2> /dev/null || true
+}
+
+# link mainscript.sh
+handler_link () {
+    log "link"
+
+    local mainScript="$1"
+    checkArg mainScript "${mainScript}"
+
+    local mainScriptPath="${cwd}/${mainScript}"
+    local target="$HOME/.local/bin/${mainScript}"
+    set -x
+    ln -sf "${mainScriptPath}" "${target}"
+    log "link done: ${mainScriptPath} -> ${target}"
 }
 
 
